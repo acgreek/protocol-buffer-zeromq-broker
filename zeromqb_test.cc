@@ -3,6 +3,28 @@
 #include <ExtremeCUnit.h>
 #include <string.h>
 using namespace ZeroMQb;
+
+TEST(create_write_read_2) {
+	InMemoryQueue queue(100000);
+	MessageQueue mq(queue);
+	std::vector<char> message;
+	message.resize(strlen("foobar") + 1);
+	strcpy(&message.at(0), "foobar");
+	mq.writeMessage(message);
+	
+	message.resize(strlen("baz") + 1);
+	strcpy(&message.at(0), "baz");
+	mq.writeMessage(message);
+
+	std::vector<char> message_out;
+	mq.readMessage(message_out);
+	AssertEqStr(&message_out.at(0),"foobar"); 
+	
+	mq.readMessage(message_out);
+	AssertEqStr(&message_out.at(0),"baz"); 
+	return 0;
+}
+
 TEST(isFull_initial) {
 	InMemoryQueue queue(10);
 	MessageQueue mq(queue);

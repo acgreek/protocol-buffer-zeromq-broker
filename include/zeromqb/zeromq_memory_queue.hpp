@@ -24,7 +24,7 @@ class InMemoryQueue {
 			write_itr_= queue_.begin();
 		}
 
-		void writeMessage(unsigned id, std::vector<char> & message)  {
+		void writeMessage(unsigned id, const std::vector<char> & message)  {
 			if (write_itr_ == queue_.end())
 				write_itr_ =queue_.begin(); 
 			if (false == write_itr_->empty_) 

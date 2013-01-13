@@ -11,8 +11,8 @@ namespace ZeroMQb {
 class MessageQueueInteraface {
 	public:
 		virtual ~MessageQueueInteraface() { }
-		virtual void writeMessage(std::vector<char> & message) = 0;
-		virtual void readMessage(std::vector<char> & message) = 0;
+		virtual void writeMessage(const std::vector<char> & message) = 0;
+		virtual bool readMessage(std::vector<char> & message) = 0;
 		virtual bool isFull() = 0;
 		virtual bool isEmpty() = 0;
 		virtual size_t count() = 0;
@@ -24,12 +24,13 @@ class MessageQueue :MessageQueueInteraface{
 	public:
 		MessageQueue(MessageQueueInteraface &mq) : mq_(mq) {}
 		virtual ~MessageQueue() { }
-		void writeMessage(std::vector<char> & message)  {
+		void writeMessage(const std::vector<char> & message)  {
 			mq_.writeMessage(message);
 		}
 
-		void readMessage(std::vector<char> & message)  {
+		bool readMessage(std::vector<char> & message)  {
 			mq_.readMessage(message);
+			return true;	
 		}
 		bool isFull() {return mq_.isFull();}
 		bool isEmpty() {return mq_.isEmpty();}
@@ -53,8 +54,9 @@ class MessageQueue_threadsafe: MessageQueueInteraface {
 			mq_.writeMessage(message);
 		}
 
-		void readMessage(std::vector<char> & message)  {
+		bool readMessage(std::vector<char> & message)  {
 			mq_.readMessage(message);
+			return true;
 		}
 		bool isFull() {return mq_.isFull();}
 		bool isEmpty() {return mq_.isEmpty();}
@@ -72,25 +74,37 @@ class GlobalSubscriptionManager {
 		class Context {
 			public:
 				Context() : queuep_(NULL) {}
-				Context(T * queuep) : queuep_(queuep) {}
+				Context(T * queuep,unsigned int *maskp) : queuep_(queuep), maskp_(maskp) {}
 				T * getQueue()  {
 					return queuep_;
 				}
 				bool isEmpty()  {
 					return queuep_->isEmpty();
 				}
+				void writeMessage(const std::vector<char> & message) {
+					queuep_->writeMessage(id_, message);
+				}
+				bool readMessage(std::vector<char> & message) {
+					return queuep_->readMessage(id_,message);
+				}
+				void readMessageDone() {
+					return queuep_->readMessageDone(id_,*maskp_);
+
+				}
+
 				T * queuep_;
 			private:
 			public:
-
+				unsigned int *maskp_;
 				unsigned int id_;
 		};
 
 		GlobalSubscriptionManager() : queues_(){};
 		Context & subscribe(std::string queue_name, std::string proc_name) {
 			if (0 == queues_[queue_name].subscriptions_.count(proc_name)) {
-				T * f= queues_[queue_name].getQueue();
-				queues_[queue_name].subscriptions_[proc_name] = Context(f);
+				QueueSubscription &qs =queues_[queue_name];
+				T * f= qs.getQueue();
+				queues_[queue_name].subscriptions_[proc_name] = Context(f, qs.getMaskPtr());
 				queues_[queue_name].subscriptions_[proc_name]. id_ = 1 << queues_[queue_name].current_id_;
 				queues_[queue_name].subscriptions_[proc_name].queuep_ = f;
 				queues_[queue_name].current_id_++;
@@ -106,7 +120,10 @@ class GlobalSubscriptionManager {
 				T* getQueue()  {
 					return &queue_;
 				}
-				
+				unsigned int * getMaskPtr() {
+					return & mask_;
+				}
+					
 			private :
 				T queue_;
 				unsigned int mask_;
@@ -114,9 +131,9 @@ class GlobalSubscriptionManager {
 				unsigned int current_id_;
 				std::map<std::string, Context > subscriptions_;
 		};
-
 	private:
 		std::map<std::string,  QueueSubscription > queues_;
+
 };
 
 

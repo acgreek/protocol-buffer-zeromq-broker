@@ -6,14 +6,48 @@ using namespace ZeroMQb;
 
 TEST(Subscription) {
 	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
-	GlobalSubscriptionManager<InMemoryQueue>::Context &qc = queueSubscription.subscribe("Q1", "proc1");
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc1 = queueSubscription.subscribe("Q1", "proc1");
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc2 = queueSubscription.subscribe("Q1", "proc2");
 	
-	InMemoryQueue *q = qc.getQueue();
-	std::vector<char> message;
-	message.resize(strlen("foobar") + 1);
-	strcpy(&message.at(0), "foobar");
-	q->writeMessage(1,message);
-	AssertEqInt(q->count(), 1);
+	std::vector<char> in_message;
+	std::vector<char> out_message;
+	in_message.resize(strlen("foobar") + 1);
+	strcpy(&in_message.at(0), "foobar");
+	qc1.writeMessage(in_message);
+	Assert(false ==qc1.readMessage(in_message));
+	Assert(true ==qc2.readMessage(out_message));
+	AssertEqStr(&out_message[0], "foobar");
+	
+	return 0;
+	
+}
+
+TEST(Subscription_write_and_read) {
+	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc1 = queueSubscription.subscribe("Q1", "proc1");
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc2 = queueSubscription.subscribe("Q1", "proc2");
+	
+	std::vector<char> in_message;
+	std::vector<char> out_message;
+	in_message.resize(strlen("foobar") + 1);
+	strcpy(&in_message.at(0), "foobar");
+	qc1.writeMessage(in_message);
+	Assert(false ==qc1.readMessage(in_message));
+	Assert(true ==qc2.readMessage(out_message));
+	AssertEqStr(&out_message[0], "foobar");
+	Assert(true ==qc2.readMessage(out_message));
+	AssertEqStr(&out_message[0], "foobar");
+	qc2.readMessageDone();
+	Assert(false ==qc2.readMessage(out_message));
+
+	in_message.resize(strlen("barbaz") + 1);
+	strcpy(&in_message.at(0), "barbaz");
+	qc2.writeMessage(in_message);
+	Assert(true ==qc1.readMessage(in_message));
+	Assert(false ==qc2.readMessage(out_message));
+	qc1.readMessageDone();
+	Assert(false ==qc1.readMessage(in_message));
+	Assert(false ==qc2.readMessage(out_message));
 	
 	return 0;
 	

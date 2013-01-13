@@ -1,5 +1,5 @@
-#ifndef ZEROMQB_HPP
-#define ZEROMQB_HPP
+#ifndef ZEROMQB_HPP 
+#define ZEROMQB_HPP 
 #include <vector>
 //#include <boost/thread/thread.hpp>
 //#include <boost/thread/mutex.hpp>
@@ -124,6 +124,10 @@ class GlobalSubscriptionManager {
 					return & mask_;
 				}
 					
+				size_t number_of_subscribers() {
+					return subscriptions_.size();
+				}
+
 			private :
 				T queue_;
 				unsigned int mask_;
@@ -131,6 +135,11 @@ class GlobalSubscriptionManager {
 				unsigned int current_id_;
 				std::map<std::string, Context > subscriptions_;
 		};
+		size_t number_of_subscribers(std::string queue_name) {
+			if (queues_.count(queue_name) == 0)
+				return 0;
+			return queues_[queue_name].number_of_subscribers();
+		}
 	private:
 		std::map<std::string,  QueueSubscription > queues_;
 

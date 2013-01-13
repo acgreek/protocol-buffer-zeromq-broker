@@ -52,6 +52,64 @@ TEST(Subscription_write_and_read) {
 	return 0;
 	
 }
+TEST(Subscription_write_and_read_num_subscribers) {
+	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc1 = queueSubscription.subscribe("Q1", "proc1");
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc2 = queueSubscription.subscribe("Q1", "proc2");
+	
+	std::vector<char> in_message;
+	std::vector<char> out_message;
+	in_message.resize(strlen("foobar") + 1);
+	strcpy(&in_message.at(0), "foobar");
+	qc1.writeMessage(in_message);
+	Assert(false ==qc1.readMessage(in_message));
+	Assert(true ==qc2.readMessage(out_message));
+	AssertEqStr(&out_message[0], "foobar");
+	Assert(true ==qc2.readMessage(out_message));
+	AssertEqStr(&out_message[0], "foobar");
+	qc2.readMessageDone();
+	Assert(false ==qc2.readMessage(out_message));
+
+	in_message.resize(strlen("barbaz") + 1);
+	strcpy(&in_message.at(0), "barbaz");
+	qc2.writeMessage(in_message);
+	Assert(true ==qc1.readMessage(in_message));
+	Assert(false ==qc2.readMessage(out_message));
+	qc1.readMessageDone();
+	Assert(false ==qc1.readMessage(in_message));
+	Assert(false ==qc2.readMessage(out_message));
+	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 2);
+	AssertEqInt(queueSubscription.number_of_subscribers("Q2"), 0);
+	{
+		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
+		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+		Assert(true ==qc3.readMessage(out_message));
+		AssertEqStr(&out_message[0], "foobar");
+	}
+	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+	{
+		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
+		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+		Assert(true ==qc3.readMessage(out_message));
+		AssertEqStr(&out_message[0], "foobar");
+		qc3.readMessageDone();
+		Assert(true ==qc3.readMessage(out_message));
+		AssertEqStr(&out_message[0], "barbaz");
+	}
+	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+	{
+		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
+		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+		Assert(true ==qc3.readMessage(out_message));
+		AssertEqStr(&out_message[0], "barbaz");
+		qc3.readMessageDone();
+		Assert(false ==qc3.readMessage(out_message));
+
+	}
+	
+	return 0;
+	
+}
 /**
  * shouldn't be able to read a message written with same context
  */

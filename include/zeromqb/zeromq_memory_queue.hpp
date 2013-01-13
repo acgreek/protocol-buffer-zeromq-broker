@@ -89,7 +89,7 @@ class InMemoryQueue {
 	protected:
 		void initReader(unsigned int id) {
 			if (0 == subscriber_map_.count(id)) {
-				subscriber_map_[id].read_itr_ = queue_.begin(); 
+				subscriber_map_[id].read_itr_ = write_itr_; 
 			}
 		}	
 		struct Entry {

@@ -74,7 +74,10 @@ class GlobalSubscriptionManager {
 		class Context {
 			public:
 				Context() : queuep_(NULL) {}
-				Context(T * queuep,unsigned int *maskp) : queuep_(queuep), maskp_(maskp) {}
+				Context(T * queuep,unsigned int id, unsigned int *maskp) : queuep_(queuep),id_(id), maskp_(maskp) {
+					queuep_->canRead(id_);
+				}
+
 				T * getQueue()  {
 					return queuep_;
 				}
@@ -92,24 +95,18 @@ class GlobalSubscriptionManager {
 
 				}
 
-				T * queuep_;
 			private:
-			public:
-				unsigned int *maskp_;
+				T * queuep_;
 				unsigned int id_;
+				unsigned int *maskp_;
 		};
 
 		GlobalSubscriptionManager() : queues_(){};
 		Context & subscribe(std::string queue_name, std::string proc_name) {
 			if (0 == queues_[queue_name].subscriptions_.count(proc_name)) {
 				QueueSubscription &qs =queues_[queue_name];
-				T * f= qs.getQueue();
-				queues_[queue_name].subscriptions_[proc_name] = Context(f, qs.getMaskPtr());
-				queues_[queue_name].subscriptions_[proc_name]. id_ = 1 << queues_[queue_name].current_id_;
-				queues_[queue_name].subscriptions_[proc_name].queuep_ = f;
-				queues_[queue_name].current_id_++;
+				qs.subscriptions_[proc_name] = Context(qs.getQueue(), qs.getNextId(), qs.getMaskPtr());
 			}
-			
 			return  queues_[queue_name].subscriptions_[proc_name];
 
 		}
@@ -119,6 +116,12 @@ class GlobalSubscriptionManager {
 				}
 				T* getQueue()  {
 					return &queue_;
+				}
+				unsigned int getNextId() {
+					unsigned int next_id = 1 <<current_id_;
+					current_id_++;
+					mask_ = (mask_<< 1) + 1;
+					return next_id;
 				}
 				unsigned int * getMaskPtr() {
 					return & mask_;

@@ -83,30 +83,24 @@ TEST(Subscription_write_and_read_num_subscribers) {
 	{
 		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
 		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
-		Assert(true ==qc3.readMessage(out_message));
-		AssertEqStr(&out_message[0], "foobar");
+		Assert(false ==qc3.readMessage(out_message));
 	}
 	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
+
+	in_message.resize(strlen("foobar") + 1);
+	strcpy(&in_message.at(0), "foobar");
+	qc1.writeMessage(in_message);
+	Assert(true ==qc2.readMessage(out_message));
+
 	{
 		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
 		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
 		Assert(true ==qc3.readMessage(out_message));
 		AssertEqStr(&out_message[0], "foobar");
-		qc3.readMessageDone();
-		Assert(true ==qc3.readMessage(out_message));
-		AssertEqStr(&out_message[0], "barbaz");
-	}
-	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
-	{
-		GlobalSubscriptionManager<InMemoryQueue>::Context &qc3 = queueSubscription.subscribe("Q1", "proc3");
-		AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
-		Assert(true ==qc3.readMessage(out_message));
-		AssertEqStr(&out_message[0], "barbaz");
 		qc3.readMessageDone();
 		Assert(false ==qc3.readMessage(out_message));
-
 	}
-	
+	AssertEqInt(queueSubscription.number_of_subscribers("Q1"), 3);
 	return 0;
 	
 }
@@ -131,6 +125,7 @@ TEST(SubscriptionReadEmpty_wrote1message) {
 
 TEST(create_write_read_2) {
 	InMemoryQueue mq(10,10);
+	mq.canRead(2);
 
 
 	std::vector<char> message;
@@ -143,11 +138,11 @@ TEST(create_write_read_2) {
 	mq.writeMessage(1,message);
 
 	std::vector<char> message_out;
-	mq.readMessage(2, message_out);
+	Assert(true == mq.readMessage(2, message_out));
 	AssertEqStr(&message_out.at(0),"foobar"); 
 	mq.readMessageDone(2,3);
 	
-	mq.readMessage(2,message_out);
+	Assert(true == mq.readMessage(2,message_out));
 	AssertEqStr(&message_out.at(0),"baz"); 
 	return 0;
 }
@@ -192,6 +187,7 @@ TEST(can_read_one_insert) {
 }
 TEST(isFull_true_after_read_one) {
 	InMemoryQueue mq(10,10);
+	mq.canRead(2);
 	Assert(false == mq.isFull());
 	std::vector<char> message;
 	message.resize(strlen("foobar") + 1);
@@ -225,12 +221,13 @@ TEST(isEmpty_false) {
 }
 TEST(create_write_read) {
 	InMemoryQueue mq(100000);
+	mq.canRead(2);
 	std::vector<char> message;
 	message.resize(strlen("foobar") + 1);
 	strcpy(&message.at(0), "foobar");
 	mq.writeMessage(1,message);
 	std::vector<char> message_out;
-	mq.readMessage(2,message_out);
+	Assert(true == mq.readMessage(2,message_out));
 	AssertEqStr(&message_out.at(0),"foobar"); 
 	mq.readMessageDone(2,3);
 	return 0;

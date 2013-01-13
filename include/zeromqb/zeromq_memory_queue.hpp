@@ -72,7 +72,9 @@ class InMemoryQueue {
 			subscriber_map_[id].read_itr_++;
 
 		}
-		bool isFull() { return current_size_ >= max_size_; }
+		bool isFull() { 
+			return current_size_ >= max_size_ || queued_messages_ >= max_messages_; 
+		}
 		bool isEmpty() { return current_size_ == 0; }
 		size_t count() {
 			return queued_messages_;

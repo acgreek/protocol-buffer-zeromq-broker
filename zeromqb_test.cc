@@ -66,12 +66,12 @@ TEST(isFull_initial) {
 	return 0;
 }
 TEST(isFull_one_insert) {
-	InMemoryQueue mq(10,10);
+	InMemoryQueue mq(1,10);
 	std::vector<char> message;
 	message.resize(strlen("foobar") + 1);
 	strcpy(&message.at(0), "foobar");
 	mq.writeMessage(1,message);
-	Assert(1 == mq.count());
+	Assert(true == mq.isFull());
 	return 0;
 }
 TEST(isFull_true_after_read_one) {

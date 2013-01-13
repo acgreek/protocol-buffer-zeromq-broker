@@ -37,29 +37,13 @@ class InMemoryQueue {
 			current_size_ +=message.size();
 			queued_messages_++;
 		}
-		void readMessage(unsigned id,  std::vector<char> & message) {
-				
-			if (0 == subscriber_map_.count(id)) {
-				subscriber_map_[id].read_itr_ = queue_.begin(); 
-			}
-			bool cont=false;
-			do {
-				cont=false;
 
-				if (subscriber_map_[id].read_itr_ == queue_.end()) {
-					subscriber_map_[id].read_itr_ = queue_.begin(); 
-				}
-				if (subscriber_map_[id].read_itr_->empty_ == true)
-					throw std::string("nothing to read");
-				if ((subscriber_map_[id].read_itr_->has_read_mask_&id) == id) {
-					subscriber_map_[id].read_itr_++;
-					cont = true;
-				}
-			} while (cont);
-
-
+		bool readMessage(unsigned id,  std::vector<char> & message) {
+			if (false ==canRead(id))
+				return false;
 		 	message.resize(subscriber_map_[id].read_itr_->data_.size());
 			memcpy(&message[0],&subscriber_map_[id].read_itr_->data_[0], message.size());
+			return true;
 			
 		}
 		void readMessageDone(unsigned id, unsigned mask) {
@@ -72,6 +56,28 @@ class InMemoryQueue {
 			subscriber_map_[id].read_itr_++;
 
 		}
+		/**
+		 * @return true if can read message with id
+		 */
+		bool canRead(unsigned id) {
+			initReader(id);
+			bool cont=false;
+			std::vector<Entry> ::iterator &itr = subscriber_map_[id].read_itr_;
+			do {
+				cont=false;
+
+				if (itr == queue_.end()) {
+					itr = queue_.begin(); 
+				}
+				if (itr->empty_ == true)
+					return false;
+				if ((itr->has_read_mask_&id) == id) {
+					itr++;
+					cont = true;
+				}
+			} while (cont);
+			return true;
+		}
 		bool isFull() { 
 			return current_size_ >= max_size_ || queued_messages_ >= max_messages_; 
 		}
@@ -81,6 +87,11 @@ class InMemoryQueue {
 		}
 
 	protected:
+		void initReader(unsigned int id) {
+			if (0 == subscriber_map_.count(id)) {
+				subscriber_map_[id].read_itr_ = queue_.begin(); 
+			}
+		}	
 		struct Entry {
 			Entry() : empty_(true), data_()  {};
 			bool empty_;

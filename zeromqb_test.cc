@@ -74,6 +74,30 @@ TEST(isFull_one_insert) {
 	Assert(true == mq.isFull());
 	return 0;
 }
+/**
+ * can't read a message with when written with same id
+ */
+TEST(can_read_one_insert) {
+	InMemoryQueue mq(10,10);
+	Assert(false== mq.canRead(1));
+	Assert(false== mq.canRead(2));
+	std::vector<char> message;
+	message.resize(strlen("foobar") + 1);
+	strcpy(&message.at(0), "foobar");
+	mq.writeMessage(1,message);
+	Assert(false== mq.canRead(1));
+	Assert(true == mq.canRead(2));
+	mq.writeMessage(2,message);
+	Assert(true == mq.canRead(1));
+	Assert(true == mq.canRead(2));
+	mq.readMessageDone(1,3);
+	Assert(false == mq.canRead(1));
+	Assert(true == mq.canRead(2));
+	mq.readMessageDone(2,3);
+	Assert(false == mq.canRead(1));
+	Assert(false == mq.canRead(2));
+	return 0;
+}
 TEST(isFull_true_after_read_one) {
 	InMemoryQueue mq(10,10);
 	Assert(false == mq.isFull());

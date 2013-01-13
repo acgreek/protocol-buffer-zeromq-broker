@@ -79,8 +79,8 @@ class GlobalSubscriptionManager {
 				bool isEmpty()  {
 					return queuep_->isEmpty();
 				}
-			private:
 				T * queuep_;
+			private:
 			public:
 
 				unsigned int id_;
@@ -89,9 +89,10 @@ class GlobalSubscriptionManager {
 		GlobalSubscriptionManager() : queues_(){};
 		Context & subscribe(std::string queue_name, std::string proc_name) {
 			if (0 == queues_[queue_name].subscriptions_.count(proc_name)) {
-				T* f= queues_[queue_name].getQueue();
+				T * f= queues_[queue_name].getQueue();
 				queues_[queue_name].subscriptions_[proc_name] = Context(f);
 				queues_[queue_name].subscriptions_[proc_name]. id_ = 1 << queues_[queue_name].current_id_;
+				queues_[queue_name].subscriptions_[proc_name].queuep_ = f;
 				queues_[queue_name].current_id_++;
 			}
 			
@@ -102,7 +103,7 @@ class GlobalSubscriptionManager {
 			public :
 				QueueSubscription() :queue_(), mask_(0),current_id_(0){
 				}
-				T * getQueue()  {
+				T* getQueue()  {
 					return &queue_;
 				}
 				

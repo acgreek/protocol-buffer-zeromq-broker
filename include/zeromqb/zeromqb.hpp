@@ -15,6 +15,8 @@ class MessageQueueInteraface {
 		virtual void readMessage(std::vector<char> & message) = 0;
 		virtual bool isFull() = 0;
 		virtual bool isEmpty() = 0;
+		virtual size_t count() = 0;
+
 	private:
 };
 
@@ -31,6 +33,9 @@ class MessageQueue :MessageQueueInteraface{
 		}
 		bool isFull() {return mq_.isFull();}
 		bool isEmpty() {return mq_.isEmpty();}
+		size_t count () {
+			return mq_.count();
+		}
 	private:
 		MessageQueueInteraface &mq_; 
 };
@@ -53,14 +58,65 @@ class MessageQueue_threadsafe: MessageQueueInteraface {
 		}
 		bool isFull() {return mq_.isFull();}
 		bool isEmpty() {return mq_.isEmpty();}
+		size_t count() {
+			return mq_.count();
+		}
 	private:
 		MessageQueue mq_;
 		boost::mutex mutex_;
 };
 
-class SubscriptionManager {
+template <class T> 
+class GlobalSubscriptionManager {
+	public:
+		class Context {
+			public:
+				Context() : queuep_(NULL) {}
+				Context(T * queuep) : queuep_(queuep) {}
+				T * getQueue()  {
+					return queuep_;
+				}
+				bool isEmpty()  {
+					return queuep_->isEmpty();
+				}
+			private:
+				T * queuep_;
+			public:
 
-}
+				unsigned int id_;
+		};
+
+		GlobalSubscriptionManager() : queues_(){};
+		Context & subscribe(std::string queue_name, std::string proc_name) {
+			if (0 == queues_[queue_name].subscriptions_.count(proc_name)) {
+				T* f= queues_[queue_name].getQueue();
+				queues_[queue_name].subscriptions_[proc_name] = Context(f);
+				queues_[queue_name].subscriptions_[proc_name]. id_ = 1 << queues_[queue_name].current_id_;
+				queues_[queue_name].current_id_++;
+			}
+			
+			return  queues_[queue_name].subscriptions_[proc_name];
+
+		}
+		class QueueSubscription {
+			public :
+				QueueSubscription() :queue_(), mask_(0),current_id_(0){
+				}
+				T * getQueue()  {
+					return &queue_;
+				}
+				
+			private :
+				T queue_;
+				unsigned int mask_;
+			public:
+				unsigned int current_id_;
+				std::map<std::string, Context > subscriptions_;
+		};
+
+	private:
+		std::map<std::string,  QueueSubscription > queues_;
+};
 
 
 }

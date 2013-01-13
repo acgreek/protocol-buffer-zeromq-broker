@@ -4,6 +4,39 @@
 #include <string.h>
 using namespace ZeroMQb;
 
+TEST(Subscription) {
+	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc = queueSubscription.subscribe("Q1", "proc1");
+	
+	InMemoryQueue* q = qc.getQueue();
+	std::vector<char> message;
+	message.resize(strlen("foobar") + 1);
+	strcpy(&message.at(0), "foobar");
+	q->writeMessage(message);
+	AssertEqInt(q->count(), 1);
+	
+	return 0;
+	
+}
+/**
+ * shouldn't be able to read a message written with same context
+ */
+TEST(SubscriptionReadEmpty_wrote1message) {
+	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
+	GlobalSubscriptionManager<InMemoryQueue>::Context &qc = queueSubscription.subscribe("Q1", "proc1");
+	
+	InMemoryQueue* q = qc.getQueue();
+	std::vector<char> message;
+	message.resize(strlen("foobar") + 1);
+	strcpy(&message.at(0), "foobar");
+	q->writeMessage(message);
+	AssertEqInt(q->count(), 1);
+	Assert(qc.isEmpty()==true);
+	
+	
+	return 0;
+}
+
 TEST(create_write_read_2) {
 	InMemoryQueue queue(100000);
 	MessageQueue mq(queue);

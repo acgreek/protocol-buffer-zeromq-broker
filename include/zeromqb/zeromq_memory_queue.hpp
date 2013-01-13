@@ -7,6 +7,8 @@
 namespace ZeroMQb  {
 class InMemoryQueue : public MessageQueueInteraface {
 	public: 
+		InMemoryQueue(): max_size_(1000000),current_size_(0) {}
+
 		InMemoryQueue(std::size_t max_size): max_size_(max_size),current_size_(0) {}
 		void writeMessage(std::vector<char> & message)  {
 			queue_. push_back (message);
@@ -20,6 +22,9 @@ class InMemoryQueue : public MessageQueueInteraface {
 		}
 		bool isFull() { return current_size_ >= max_size_; }
 		bool isEmpty() { return current_size_ == 0; }
+		size_t count() {
+			return queue_.size();
+		}
 	private:
 		std::size_t max_size_;
 		std::size_t current_size_;

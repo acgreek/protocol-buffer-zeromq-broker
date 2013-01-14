@@ -75,7 +75,7 @@ class GlobalSubscriptionManager {
 	public:
 		class Context {
 			public:
-				Context() : queuep_(NULL) {}
+				Context() : queuep_(NULL),id_(0), maskp_(0) {}
 				Context(T * queuep,SubscriberMask_t id, SubscriberMask_t *maskp) : queuep_(queuep),id_(id), maskp_(maskp) {
 					queuep_->canRead(id_);
 				}
@@ -114,7 +114,7 @@ class GlobalSubscriptionManager {
 		}
 		class QueueSubscription {
 			public :
-				QueueSubscription() :queue_(), mask_(0),current_id_(0){
+				QueueSubscription() :queue_(), mask_(0),current_id_(0),subscriptions_(){
 				}
 				T* getQueue()  {
 					return &queue_;

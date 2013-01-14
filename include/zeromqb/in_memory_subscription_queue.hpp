@@ -10,16 +10,16 @@ namespace ZeroMQb  {
 class InMemoryQueue {
 	public: 
 	
-		InMemoryQueue(std::size_t max_messages, std::size_t max_size):max_messages_(max_messages), max_size_(max_size),current_size_(0),queued_messages_(0) {
+		InMemoryQueue(std::size_t max_messages, std::size_t max_size):max_messages_(max_messages), max_size_(max_size),current_size_(0),queue_(),subscriber_map_(),write_itr_(),queued_messages_(0) {
 			queue_.resize(max_size_, Entry());
 			write_itr_= queue_.begin();
 		}
-		InMemoryQueue():max_messages_(1000), max_size_(1000),current_size_(0),queued_messages_(0) {
+		InMemoryQueue():max_messages_(1000), max_size_(1000),current_size_(0),queue_(),subscriber_map_(),write_itr_(),queued_messages_(0) {
 			queue_.resize(1000, Entry());
 			write_itr_= queue_.begin();
 		}
 
-		InMemoryQueue(std::size_t max_size):max_messages_(1000), max_size_(max_size),current_size_(0),queued_messages_(0) {
+		InMemoryQueue(std::size_t max_size):max_messages_(1000), max_size_(max_size),current_size_(0),queue_(),subscriber_map_(),write_itr_(),queued_messages_(0) {
 			queue_.resize(1000, Entry());
 			write_itr_= queue_.begin();
 		}
@@ -95,12 +95,13 @@ class InMemoryQueue {
 			}
 		}	
 		struct Entry {
-			Entry() : empty_(true), data_()  {};
+			Entry() : empty_(true),has_read_mask_(), data_()  {};
 			bool empty_;
 			SubscriberMask_t has_read_mask_;
 			std::vector<char> data_;
 		};
 		struct Subscriber {
+			Subscriber(): read_itr_() {}
 			std::vector<Entry> ::iterator read_itr_;
 		};
 	private:

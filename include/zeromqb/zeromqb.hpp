@@ -20,9 +20,6 @@ class GlobalSubscriptionManager {
 					queuep_->subscribe(id_);
 				}
 
-				T * getQueue()  {
-					return queuep_;
-				}
 				bool isEmpty()  const {
 					return queuep_->isEmpty();
 				}

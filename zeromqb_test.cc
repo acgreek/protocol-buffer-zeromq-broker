@@ -111,13 +111,11 @@ TEST(SubscriptionReadEmpty_wrote1message) {
 	GlobalSubscriptionManager<InMemoryQueue> queueSubscription;
 	GlobalSubscriptionManager<InMemoryQueue>::Context &qc = queueSubscription.subscribe("Q1", "proc1");
 	
-	InMemoryQueue* q = qc.getQueue();
 	std::vector<char> message;
 	message.resize(strlen("foobar") + 1);
 	strcpy(&message.at(0), "foobar");
-	q->writeMessage(1,message);
-	AssertEqInt(q->count(), 1);
-	//Assert(qc.isEmpty()==true);
+	qc.writeMessage(message);
+	Assert(false ==qc.readMessage(message));
 	
 	
 	return 0;

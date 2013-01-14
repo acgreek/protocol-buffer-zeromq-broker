@@ -23,7 +23,7 @@ class GlobalSubscriptionManager {
 				T * getQueue()  {
 					return queuep_;
 				}
-				bool isEmpty()  {
+				bool isEmpty()  const {
 					return queuep_->isEmpty();
 				}
 				void writeMessage(const std::vector<char> & message) {
@@ -44,7 +44,7 @@ class GlobalSubscriptionManager {
 		};
 
 		GlobalSubscriptionManager() : queues_(){};
-		Context & subscribe(std::string queue_name, std::string proc_name) {
+		Context & subscribe(const std::string queue_name, const std::string proc_name) {
 			if (0 == queues_[queue_name].subscriptions_.count(proc_name)) {
 				QueueSubscription &qs =queues_[queue_name];
 				qs.subscriptions_[proc_name] = Context(qs.getQueue(), qs.getNextId(), qs.getMaskPtr());
@@ -69,7 +69,7 @@ class GlobalSubscriptionManager {
 					return & mask_;
 				}
 					
-				size_t number_of_subscribers() {
+				size_t number_of_subscribers() const {
 					return subscriptions_.size();
 				}
 
@@ -80,7 +80,7 @@ class GlobalSubscriptionManager {
 				SubscriberMask_t current_id_;
 				std::map<std::string, Context > subscriptions_;
 		};
-		size_t number_of_subscribers(std::string queue_name) {
+		size_t number_of_subscribers(const std::string queue_name)  {
 			if (queues_.count(queue_name) == 0)
 				return 0;
 			return queues_[queue_name].number_of_subscribers();

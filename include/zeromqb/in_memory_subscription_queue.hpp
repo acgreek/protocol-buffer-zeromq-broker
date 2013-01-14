@@ -32,8 +32,7 @@ class InMemoryQueue {
 				write_itr_ =queue_.begin(); 
 			if (false == write_itr_->empty_) 
 				throw std::string("Queue full");
-			write_itr_->data_.resize(message.size());
-			memcpy(&write_itr_->data_[0],&message[0], message.size());
+			write_itr_->data_ =message;
 			write_itr_->empty_= false;
 			write_itr_->has_read_mask_= id;
 			write_itr_++;
@@ -44,8 +43,7 @@ class InMemoryQueue {
 		bool readMessage(unsigned id,  std::vector<char> & message) {
 			if (false ==canRead(id))
 				return false;
-		 	message.resize(subscriber_map_[id].read_itr_->data_.size());
-			memcpy(&message[0],&subscriber_map_[id].read_itr_->data_[0], message.size());
+			message = subscriber_map_[id].read_itr_->data_;
 			return true;
 			
 		}
@@ -85,6 +83,7 @@ class InMemoryQueue {
 			return current_size_ >= max_size_ || queued_messages_ >= max_messages_; 
 		}
 		bool isEmpty() { return current_size_ == 0; }
+
 		size_t count() {
 			return queued_messages_;
 		}
@@ -112,6 +111,5 @@ class InMemoryQueue {
 		std::map<unsigned, Subscriber> subscriber_map_;
 		std::vector<Entry> ::iterator write_itr_;
 		std::size_t queued_messages_ ;
-
 };
 }

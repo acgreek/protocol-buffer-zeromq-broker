@@ -23,6 +23,9 @@ class InMemoryQueue {
 			queue_.resize(1000, Entry());
 			write_itr_= queue_.begin();
 		}
+		void subscribe(SubscriberMask_t id) {
+			initReader(id);
+		}
 
 		void writeMessage(unsigned id, const std::vector<char> & message)  {
 			if (write_itr_ == queue_.end())

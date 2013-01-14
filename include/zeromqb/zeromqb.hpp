@@ -6,6 +6,8 @@
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
+typedef unsigned int SubscriberMask_t;
+
 namespace ZeroMQb {
 
 class MessageQueueInteraface {
@@ -74,7 +76,7 @@ class GlobalSubscriptionManager {
 		class Context {
 			public:
 				Context() : queuep_(NULL) {}
-				Context(T * queuep,unsigned int id, unsigned int *maskp) : queuep_(queuep),id_(id), maskp_(maskp) {
+				Context(T * queuep,SubscriberMask_t id, SubscriberMask_t *maskp) : queuep_(queuep),id_(id), maskp_(maskp) {
 					queuep_->canRead(id_);
 				}
 
@@ -97,8 +99,8 @@ class GlobalSubscriptionManager {
 
 			private:
 				T * queuep_;
-				unsigned int id_;
-				unsigned int *maskp_;
+				SubscriberMask_t id_;
+				SubscriberMask_t *maskp_;
 		};
 
 		GlobalSubscriptionManager() : queues_(){};
@@ -117,13 +119,13 @@ class GlobalSubscriptionManager {
 				T* getQueue()  {
 					return &queue_;
 				}
-				unsigned int getNextId() {
-					unsigned int next_id = 1 <<current_id_;
+				SubscriberMask_t getNextId() {
+					SubscriberMask_t next_id = 1 <<current_id_;
 					current_id_++;
 					mask_ = (mask_<< 1) + 1;
 					return next_id;
 				}
-				unsigned int * getMaskPtr() {
+				SubscriberMask_t * getMaskPtr() {
 					return & mask_;
 				}
 					
@@ -133,9 +135,9 @@ class GlobalSubscriptionManager {
 
 			private :
 				T queue_;
-				unsigned int mask_;
+				SubscriberMask_t mask_;
 			public:
-				unsigned int current_id_;
+				SubscriberMask_t current_id_;
 				std::map<std::string, Context > subscriptions_;
 		};
 		size_t number_of_subscribers(std::string queue_name) {

@@ -1,5 +1,5 @@
 #include "include/zeromqb/zeromqb.hpp"
-#include "include/zeromqb/zeromq_memory_queue.hpp"
+#include "include/zeromqb/in_memory_subscription_queue.hpp"
 #include <ExtremeCUnit.h>
 #include <string.h>
 using namespace ZeroMQb;

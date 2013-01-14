@@ -87,7 +87,7 @@ class InMemoryQueue {
 		}
 
 	protected:
-		void initReader(unsigned int id) {
+		void initReader(SubscriberMask_t id) {
 			if (0 == subscriber_map_.count(id)) {
 				subscriber_map_[id].read_itr_ = write_itr_; 
 			}
@@ -95,7 +95,7 @@ class InMemoryQueue {
 		struct Entry {
 			Entry() : empty_(true), data_()  {};
 			bool empty_;
-			unsigned int has_read_mask_;
+			SubscriberMask_t has_read_mask_;
 			std::vector<char> data_;
 		};
 		struct Subscriber {

@@ -18,7 +18,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 add_executable(test zeromqb_test.cc) 
-target_link_libraries(test ${EXTREMECUNIT_LIBRARIES} )
+target_link_libraries(test ${EXTREMECUNIT_LIBRARIES} boost_system )
 
 #set_target_properties(test PROPERTIES CMAKE_CXX_FLAGS "${EXTREMECUNIT_CFLAGS} ")
 #set_target_properties(test PROPERTIES CMAKE_LINKER_FLAGS "${EXTREMECUNIT_LDFLAGS2} -pie")

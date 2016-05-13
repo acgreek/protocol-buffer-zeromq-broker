@@ -1,7 +1,9 @@
 #include <iostream>
+#include <stdlib.h>
+#include <getopt.h>
 void usage (char * name) {
 	std::cout << "Usage: " << name << " [OPTIONS]" << std::endl;
-	exit(-1);
+	exit(EXIT_FAILURE);
 }
 int main (int argc, char * argv[]) {
 	int options;
@@ -13,6 +15,5 @@ int main (int argc, char * argv[]) {
 				usage(argv[0]);
 		}
 	}
-	return 0;
-
+	return EXIT_SUCCESS;
 }
